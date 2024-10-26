@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 style="text-align: center; margin-top: 20px; color: white;">Lección de Python</h1>
+
+<!-- Contenedor principal dividido en dos columnas -->
+<div style="display: flex; justify-content: space-between; padding: 20px;">
+
+    <!-- Columna para el editor de CodeMirror -->
+    <div style="width: 50%; padding-right: 10px;">
+        <h2 style="text-align: center; color: white;">Editor de Código</h2>
+        <textarea id="code-editor">
+# Ejemplo: Crear un DataFrame y graficarlo con Plotly
+import pandas as pd
+import plotly.express as px
+
+datos = {
+    'Mes': ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo'],
+    'Ventas': [200, 300, 150, 400, 250]
+}
+df = pd.DataFrame(datos)
+
+fig = px.line(df, x='Mes', y='Ventas', title='Ventas Mensuales', markers=True)
+
+resultado = fig.to_html(full_html=False)
+        </textarea>
+
+        <!-- Botón de ejecución -->
+        <div style="text-align: center; margin-top: 20px;">
+            <button id="run-code" style="padding: 10px 20px; font-size: 16px; background-color: #007acc; color: white; border: none; cursor: pointer;">
+                Ejecutar
+            </button>
+        </div>
+    </div>
+
+    <!-- Columna para la explicación de la lección (tema oscuro) -->
+    <div style="width: 45%; background-color: #1e1e1e; padding: 20px; border-radius: 8px; color: white;">
+        <h2 style="text-align: center;">Explicación de la Lección</h2>
+        <p style="font-size: 16px; color: #d4d4d4;">
+            En esta lección aprenderás a crear un <strong>DataFrame</strong> con datos ficticios de ventas utilizando la librería <strong>pandas</strong>. Luego, 
+            graficaremos los datos usando <strong>Plotly</strong>, lo cual te permitirá visualizar la tendencia de ventas en cada mes.
+        </p>
+        <p style="font-size: 16px; color: #d4d4d4;">
+            <strong>Objetivo:</strong> Familiarizarse con la creación y manipulación de DataFrames y el uso básico de gráficas interactivas en Plotly.
+        </p>
+        <p style="font-size: 16px; color: #d4d4d4;">
+            <strong>Tip:</strong> Intenta modificar los datos de ventas en el editor para ver cómo cambia la gráfica.
+        </p>
+    </div>
+
+</div>
+
+<!-- Contenedor de resultados -->
+<div id="output" style="margin-top: 20px; color: white; text-align: center; border: 1px solid white; padding: 10px; min-height: 50px;"></div>
+
+<script>
+    $(document).ready(function() {
+        // Inicializar CodeMirror en el área de texto
+        var editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
+            lineNumbers: true,
+            mode: 'python',
+            theme: 'dracula',
+            indentUnit: 4,
+            matchBrackets: true,
+            autoCloseBrackets: true
+        });
+
+        // Ajustar el tamaño del editor
+        editor.setSize('100%', '400px');
+
+        // Deshabilitar el pegado en el editor
+        editor.on('paste', function(cm, e) {
+            e.preventDefault();
+            alert('El pegado de texto está deshabilitado en este editor.');
+        });
+
+        // Configurar el evento de clic en el botón de ejecución
+        $('#run-code').click(function() {
+            const code = editor.getValue();
+            console.log("Código capturado: ", code);
+
+            // Enviar el código al backend para su ejecución
+            $.ajax({
+                url: '/ejecutar',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ codigo: code }),
+                success: function(response) {
+                    if (response.error) {
+                        $('#output').html(response.error);
+                    } else {
+                        $('#output').html(response.resultado);
+                    }
+                },
+                error: function() {
+                    $('#output').html('<div style="color: red;">Error en la solicitud.</div>');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
