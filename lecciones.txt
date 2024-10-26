@@ -1,0 +1,33 @@
+--- LECCION ---
+Leccion 1: Introducción a Python
+Explicación: Python es un lenguaje de programación versátil y fácil de aprender, ampliamente utilizado en diversas aplicaciones como desarrollo web, análisis de datos, inteligencia artificial y automatización de tareas. En esta lección, comenzaremos por entender cómo funciona la impresión de texto en la consola y cómo se manejan las variables, lo que es fundamental para cualquier lenguaje de programación.
+
+# Paso 1: Imprimir Texto
+# En Python, utilizamos la función `print()` para mostrar texto en la consola.
+# Esta función puede recibir uno o más argumentos y los muestra en la salida estándar, que normalmente es la pantalla.
+# También podemos usar `print()` para depurar código, mostrando valores de variables en diferentes puntos de nuestro programa.
+# Código base:
+resultado = "¡Hola desde Python!"  # Asignar un saludo a la variable resultado
+print(resultado)  # Imprimir el resultado
+
+# Paso 2: Variables y Tipos de Datos
+# Las variables son contenedores para almacenar datos. En Python, no es necesario declarar el tipo de variable antes de usarla.
+# Python detecta automáticamente el tipo de dato basado en el valor que asignamos a la variable.
+# Los tipos de datos comunes incluyen:
+# - Cadenas (str): texto, como "Hola"
+# - Enteros (int): números sin decimales, como 10
+# - Flotantes (float): números con decimales, como 10.5
+# - Listas (list): colecciones ordenadas de elementos, como [1, 2, 3]
+# Código base:
+nombre = "Juan"  # Nombre de la persona (cadena)
+edad = 30  # Edad de la persona (entero)
+frutas = ["manzana", "banana", "naranja"]  # Lista de frutas
+resultado = f"{nombre} tiene {edad} años y le gusta {frutas[0]}."  # Formatear resultado
+print(resultado)  # Imprimir el resultado
+
+# Paso 3: Formateo de Cadenas
+# Python permite formatear cadenas para incluir variables dentro de ellas, utilizando la f-string (formato literal).
+# Esto es especialmente útil para crear mensajes dinámicos basados en valores de variables.
+# Código base:
+resultado = f"{nombre} tiene {edad} años y le gusta {frutas[0]}."  # Formatear resultado
+print(resultado)  # Imprimir el resultado

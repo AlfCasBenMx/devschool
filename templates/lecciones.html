@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Lecciones</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css">
+    <style>
+        body {
+            background-color: #2d2d2d;
+            color: white;
+        }
+        nav {
+            margin: 20px;
+            text-align: center;
+        }
+        a {
+            color: #007acc;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Lista de Lecciones</h1>
+    <ul>
+        {% for leccion in lecciones %}
+            <li>
+                <a href="{{ url_for('leccion', leccion_id=loop.index0) }}">{{ leccion.nombre }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+    {% if not lecciones %}
+        <p>No se encontraron lecciones.</p>  <!-- Mensaje si no hay lecciones -->
+    {% endif %}
+</body>
+</html>

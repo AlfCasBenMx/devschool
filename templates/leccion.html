@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{{ leccion.nombre }}</h1>
+
+<!-- Contenedor para el editor -->
+<div style="display: flex; justify-content: space-between; padding: 20px;">
+
+    <!-- Columna para el editor de CodeMirror -->
+    <div style="width: 50%;">
+        <h2>Editor de Código</h2>
+        <textarea id="code-editor">{{ leccion.codigo }}</textarea> <!-- Aquí se muestra el código base -->
+
+        <button id="run-code">Ejecutar</button>
+    </div>
+
+    <!-- Columna para la explicación de la lección -->
+    <div style="width: 45%; background-color: #1e1e1e; padding: 20px; border-radius: 8px; color: white;">
+        <h2>Explicación de la Lección</h2>
+        <p>{{ leccion.explicacion }}</p>
+    </div>
+</div>
+
+<!-- Contenedor de resultados -->
+<div id="output" style="margin-top: 20px; color: white; text-align: center; border: 1px solid white; padding: 10px; min-height: 50px;"></div>
+
+<!-- Botón para la siguiente lección -->
+{% if siguiente_id is not none %}
+<div style="text-align: center; margin-top: 20px;">
+    <a href="{{ url_for('leccion', leccion_id=siguiente_id) }}">
+        <button style="padding: 10px 20px; font-size: 16px; background-color: #28a745; color: white; border: none; cursor: pointer;">
+            Siguiente Lección
+        </button>
+    </a>
+</div>
+{% endif %}
+
+<script>
+    $(document).ready(function() {
+        // Inicializar CodeMirror en el área de texto
+        var editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
+            lineNumbers: true,
+            mode: 'python',
+            theme: 'dracula',
+            indentUnit: 4,
+            matchBrackets: true,
+            autoCloseBrackets: true
+        });
+
+        // Ajustar el tamaño del editor
+        editor.setSize('100%', '400px');
+
+        // Deshabilitar el pegado en el editor
+        editor.on('paste', function(cm, e) {
+            e.preventDefault();
+            alert('El pegado de texto está deshabilitado en este editor.');
+        });
+
+        // Configurar el evento de clic en el botón de ejecución
+        $('#run-code').click(function() {
+            const code = editor.getValue();
+            $.ajax({
+                url: '/ejecutar',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ codigo: code }),
+                success: function(response) {
+                    // Mostrar resultado y error
+                    $('#output').html(response.resultado + response.error);
+                },
+                error: function() {
+                    $('#output').html('<div style="color: red;">Error en la solicitud.</div>');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

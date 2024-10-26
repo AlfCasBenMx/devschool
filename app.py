@@ -14,11 +14,14 @@ from IPython.utils.io import capture_output
 
 
 
-
+# Ruta al archivo de lecciones
+LECCIONES_FILE = 'lecciones.txt'
 app = Flask(__name__)
 app.secret_key = 'clave-secreta'  # Cambia esta clave por una segura
 app.config['SESSION_TYPE'] = 'filesystem'  # Guardar las sesiones en el sistema de archivos
-
+app.config['SESSION_PERMANENT'] = False
+app.config['SESSION_USE_SIGNER'] = True
+app.config['SESSION_KEY_PREFIX'] = 'flask_session:'
 # Inicializar Flask-Session
 Session(app)
 
@@ -33,6 +36,22 @@ users = {'alumno1': {'password': 'password123'}, 'alumno2': {'password': 'passwo
 class User(UserMixin):
     def __init__(self, username):
         self.id = username
+
+def cargar_lecciones():
+    lecciones = []
+    with open('lecciones.txt', 'r', encoding='utf-8') as file:  # Abrir archivo con codificación Latin-1
+        contenido = file.read().strip()
+        lecciones_raw = contenido.split("--- LECCION ---")  # Usar el nuevo delimitador
+        for leccion in lecciones_raw:
+            if leccion.strip():  # Asegurarse de que no esté vacío
+                partes = leccion.split("\n")
+                nombre = partes[0].strip()
+                explicacion = partes[1].strip()
+                codigo_base = "\n".join(partes[3:]).strip()  # Unir el código base
+                lecciones.append({'nombre': nombre, 'explicacion': explicacion, 'codigo': codigo_base})
+    return lecciones
+
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -65,54 +84,46 @@ def index():
     return render_template('kernel.html', user=current_user.id)
 
 @app.route('/ejecutar', methods=['POST'])
+@login_required
 def ejecutar():
     codigo = request.json.get('codigo', '')
-
-    # Variables para almacenar el resultado y los errores
+    
     resultado_html = ''
     error = ''
     
     try:
-        # Capturar la salida de la ejecución con IPython
-        with capture_output() as output:
-            # Ejecutar el código proporcionado
-            exec_locals = {}
-            exec(codigo, globals(), exec_locals)
+        exec_locals = {}
+        exec(codigo, {}, exec_locals)
 
-        # Obtener el texto de la salida capturada
-        output_text = output.stdout
-
-        # Verificar la última variable en exec_locals
-        ultimo_resultado = None
-        if exec_locals:
-            # Obtener la última variable definida
-            ultimo_resultado = list(exec_locals.values())[-1]
-
-        # Verificar si se generó una figura
-        img_base64 = ''
-        fig = plt.gcf()
-        if fig.get_axes():  # Si hay una figura activa
-            img = io.BytesIO()
-            fig.savefig(img, format='png', bbox_inches='tight')
-            img.seek(0)
-            img_base64 = base64.b64encode(img.getvalue()).decode()
-            plt.close(fig)
-
-            # Formatear la imagen como HTML
-            resultado_html = f"<img src='data:image/png;base64,{img_base64}'/>"
-        elif ultimo_resultado is not None:
-            # Mostrar el último resultado como HTML
-            resultado_html = f"<pre>{ultimo_resultado}</pre>"
-        elif output_text:
-            # Mostrar el texto capturado como HTML
-            resultado_html = f"<pre>{output_text}</pre>"
+        # Capturamos el resultado si se ha definido
+        if 'resultado' in exec_locals:
+            resultado_html = f"<pre>{exec_locals['resultado']}</pre>"
         else:
-            resultado_html = "<pre>No se generó ninguna salida.</pre>"
+            resultado_html = "<pre>No se definió 'resultado'.</pre>"
 
     except Exception as e:
+        # Captura el error y devuelve su mensaje
         error = f"<div style='color: red;'>Error: {str(e)}</div>"
 
+    # Devolvemos tanto el resultado como el error
     return jsonify({'resultado': Markup(resultado_html), 'error': Markup(error)})
+
+
+
+@app.route('/lecciones')
+def lecciones():
+    lecciones = cargar_lecciones()
+    print("Lecciones cargadas:", lecciones)  # Mensaje de depuración
+    return render_template('lecciones.html', lecciones=lecciones)
+
+@app.route('/leccion/<int:leccion_id>')
+def leccion(leccion_id):
+    lecciones = cargar_lecciones()
+    if leccion_id < len(lecciones):
+        leccion = lecciones[leccion_id]
+        siguiente_id = leccion_id + 1 if leccion_id + 1 < len(lecciones) else None
+        return render_template('leccion.html', leccion=leccion, siguiente_id=siguiente_id)
+    return "Lección no encontrada", 404
 
 
 if __name__ == '__main__':
